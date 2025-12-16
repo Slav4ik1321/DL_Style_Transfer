@@ -80,5 +80,6 @@ python 50_examples.py
 ├── final_report_plots/    # Папка с результатами работы
 │   ├── images_grid.jpg
 │   └── losses_grid.jpg
+├── results_labeled/    # Папка с результатами экспериментов
 └── README.md              # Документация проекта
 ```
