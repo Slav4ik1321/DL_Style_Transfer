@@ -1,3 +1,43 @@
+import subprocess
+import sys
+import importlib.util
+
+def install_and_import(package_name, import_name=None):
+    """
+    Проверяет, установлен ли пакет. Если нет — устанавливает его.
+    :param package_name: Имя пакета для pip (например, 'Pillow')
+    :param import_name: Имя для импорта (например, 'PIL'). Если None, совпадает с package_name.
+    """
+    if import_name is None:
+        import_name = package_name
+
+    if importlib.util.find_spec(import_name) is None:
+        print(f"[AUTO-INSTALL] Installing required package: {package_name}...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+            print(f"[AUTO-INSTALL] {package_name} installed successfully.")
+        except subprocess.CalledProcessError:
+            print(f"[ERROR] Failed to install {package_name}. Please install it manually.")
+            sys.exit(1)
+    else:
+        pass # Пакет уже установлен
+
+# Список необходимых библиотек
+# Format: ('pip_name', 'import_name')
+required_libraries = [
+    ('numpy', None),
+    ('requests', None),
+    ('torch', None),
+    ('torchvision', None),
+    ('Pillow', 'PIL'),
+    ('matplotlib', None)
+]
+
+print("Checking dependencies...")
+for pip_name, mod_name in required_libraries:
+    install_and_import(pip_name, mod_name)
+print("All dependencies are ready.\n")
+
 """
 Style Transfer Final Report Generator (Fixed & Enhanced)
 ======================================================
@@ -569,3 +609,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
