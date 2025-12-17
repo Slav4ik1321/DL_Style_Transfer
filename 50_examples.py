@@ -310,10 +310,18 @@ def run_transfer(cnn, content, style):
 
     history = {'style': [], 'content': [], 'tv': [], 'total': []}
 
+    best_loss = float('inf')
+    best_img = input_img.clone().detach()
+
     run = [0]
     while run[0] <= cfg.num_steps:
         def closure():
-            with torch.no_grad(): input_img.clamp_(0, 1)
+            # Объявляем nonlocal, чтобы менять переменные из внешней области
+            nonlocal best_loss, best_img
+
+            with torch.no_grad():
+                input_img.clamp_(0, 1)
+
             optimizer.zero_grad()
             model(input_img)
 
@@ -324,18 +332,26 @@ def run_transfer(cnn, content, style):
             loss = s_score + c_score + tv_score
             loss.backward()
 
+            current_loss_val = loss.item()
+
             history['style'].append(s_score.item())
             history['content'].append(c_score.item())
             history['tv'].append(tv_score.item())
-            history['total'].append(loss.item())
+            history['total'].append(current_loss_val)
+
+            if current_loss_val < best_loss:
+                best_loss = current_loss_val
+                best_img.data.copy_(input_img.data)
 
             run[0] += 1
             return loss
 
         optimizer.step(closure)
 
-    with torch.no_grad(): input_img.clamp_(0, 1)
-    return input_img, history
+    with torch.no_grad():
+        best_img.clamp_(0, 1)
+
+    return best_img, history
 
 
 def get_class_pred(model, img):
